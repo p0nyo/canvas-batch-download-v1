@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "Canvas Batch PDF Downloader",
+    "version": "1.0",
+    "description": "Download all PDF links from a Canvas webpage.",
+    "permissions": ["downloads", "activeTab", "scripting"],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"],
+        "type": "module"
+      }
+    ]
+  }
