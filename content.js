@@ -18,13 +18,62 @@ async function getModuleItemLinks() {
     return moduleUrls
 }
 
+async function fetchModulePages(urls) {
+  const fetches = urls.map(async (url) => {
+    try {
+      const res = await fetch(url, { credentials: "include" });
+      const text = await res.text();
+      return { url, html: text };
+    } catch (err) {
+      console.error(`Error fetching ${url}`, err);
+      return null;
+    }
+  });
+
+  const results = await Promise.all(fetches);
+  return results.filter(Boolean); 
+}
+
+
+function extractPdfLinkFromHTML(html, baseUrl) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    let anchor = doc.querySelector('a[download]');
+
+    if (!anchor) {
+        anchor = Array.from(doc.querySelectorAll("a")).find((a) => 
+            a.href.endsWith(".pdf")
+        );
+    }
+
+    if (anchor) {
+        const pdfUrl = new URL(anchor.getAttribute("href"), baseUrl).toString();
+        return pdfUrl;
+    }
+
+    return null;
+}
+
+
 // Targets custom canvas domain names and default instructure domain names
 if (isCanvasCoursePage()) {
     console.log("WORKING!")
 }   
 
-moduleUrls = getModuleItemLinks();
-console.log(moduleUrls);
+(async () => {
+    const moduleUrls = await getModuleItemLinks();
+    const modulePages = await fetchModulePages(moduleUrls); 
+
+    const pdfLinks = modulePages
+        .map(({ url, html }) => extractPdfLinkFromHTML(html, url))
+        .filter((link) => link !== null);
+
+    console.log("Found PDF Links:", pdfLinks);
+})();
+
+chrome.storage.local.set({ pdfLinks: linksArray });
+
 
 
 {/* 
