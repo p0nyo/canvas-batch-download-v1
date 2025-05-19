@@ -3,7 +3,7 @@
     "name": "Canvas Batch PDF Downloader",
     "version": "1.0",
     "description": "Download all PDF links from a Canvas webpage.",
-    "permissions": ["downloads", "activeTab", "scripting"],
+    "permissions": ["downloads", "activeTab", "scripting", "storage"],
     "action": {
       "default_popup": "popup.html"
     },

@@ -70,9 +70,10 @@ if (isCanvasCoursePage()) {
         .filter((link) => link !== null);
 
     console.log("Found PDF Links:", pdfLinks);
+    
+    chrome.storage.local.set({ pdfLinks });
 })();
 
-chrome.storage.local.set({ pdfLinks: linksArray });
 
 
 
