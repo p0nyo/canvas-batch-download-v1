@@ -19,20 +19,21 @@ async function getModuleItemLinks() {
 }
 
 async function fetchModulePages(urls) {
-  const fetches = urls.map(async (url) => {
-    try {
-      const res = await fetch(url, { credentials: "include" });
-      const text = await res.text();
-      return { url, html: text };
-    } catch (err) {
-      console.error(`Error fetching ${url}`, err);
-      return null;
-    }
-  });
+  const pages = [];
 
-  const results = await Promise.all(fetches);
-  return results.filter(Boolean); 
+  for (const url of urls) {
+    try {
+        const res = await fetch(url, { credentials: "include" }); // important for Canvas auth
+        const text = await res.text();
+        pages.push({ url, html: text });
+    } catch (err) {
+        console.error(`Error fetching ${url}:`, err);
+    }
+  }
+
+  return pages;
 }
+
 
 
 function extractPdfLinkFromHTML(html, baseUrl) {
@@ -61,16 +62,19 @@ if (isCanvasCoursePage()) {
     console.log("WORKING!")
 }   
 
+
+
 (async () => {
     const moduleUrls = await getModuleItemLinks();
-    const modulePages = await fetchModulePages(moduleUrls); 
+    console.log(moduleUrls);
+
+    const modulePages = await fetchModulePages(moduleUrls);
 
     const pdfLinks = modulePages
-        .map(({ url, html }) => extractPdfLinkFromHTML(html, url))
-        .filter((link) => link !== null);
+    .map(({ url, html }) => extractPdfLinkFromHTML(html, url))
+    .filter((link) => link !== null);
 
     console.log("Found PDF Links:", pdfLinks);
-    
     chrome.storage.local.set({ pdfLinks });
 })();
 

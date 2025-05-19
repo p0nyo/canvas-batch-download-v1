@@ -4,6 +4,9 @@
     "version": "1.0",
     "description": "Download all PDF links from a Canvas webpage.",
     "permissions": ["downloads", "activeTab", "scripting", "storage"],
+    "host_permissions": [
+      "https://canvas.auckland.ac.nz/*"
+    ],
     "action": {
       "default_popup": "popup.html"
     },
