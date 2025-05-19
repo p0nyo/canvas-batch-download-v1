@@ -9,10 +9,22 @@ function isCanvasCoursePage() {
   
     return isCanvasHost && isCourseSubpage;
 }
+
+async function getModuleItemLinks() {
+    const anchors = document.querySelectorAll('a.ig-title.title.item_link');
+    const moduleUrls = Array.from(anchors).map((a) => 
+        new URL(a.getAttribute('href'), window.location.origin).toString()
+    );
+    return moduleUrls
+}
+
 // Targets custom canvas domain names and default instructure domain names
 if (isCanvasCoursePage()) {
     console.log("WORKING!")
-}
+}   
+
+moduleUrls = getModuleItemLinks();
+console.log(moduleUrls);
 
 
 {/* 
