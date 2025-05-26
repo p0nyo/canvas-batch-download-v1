@@ -34,8 +34,6 @@ async function fetchModulePages(urls) {
   return pages;
 }
 
-
-
 function extractPdfLinkFromHTML(html, baseUrl) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
@@ -49,20 +47,25 @@ function extractPdfLinkFromHTML(html, baseUrl) {
     }
 
     if (anchor) {
-        const pdfUrl = new URL(anchor.getAttribute("href"), baseUrl).toString();
-        return pdfUrl;
+        const href = anchor.getAttribute("href");
+        const pdfUrl = new URL(href, baseUrl).toString();
+        const text = anchor.textContent.trim();
+        return { url: pdfUrl, text };
     }
 
     return null;
 }
 
+window.addEventListener("load", () => {
+  chrome.storage.local.clear(() => {
+    console.log("Extension storage cleared on page reload");
+  });
+});
 
 // Targets custom canvas domain names and default instructure domain names
 if (isCanvasCoursePage()) {
     console.log("WORKING!")
 }   
-
-
 
 (async () => {
     const moduleUrls = await getModuleItemLinks();
