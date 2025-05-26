@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, "selected_pdfs.zip");
+        saveAs(zipBlob, "canvas_batch_download.zip");
     });
   });
 });
