@@ -12,27 +12,42 @@ function isCanvasCoursePage() {
 
 async function getModuleItemLinks() {
     const anchors = document.querySelectorAll('a.ig-title.title.item_link');
-    const moduleUrls = Array.from(anchors).map((a) => 
-        new URL(a.getAttribute('href'), window.location.origin).toString()
-    );
-    return moduleUrls
+    
+    const moduleItems = Array.from(anchors).map((a) => ({
+        url: new URL(a.getAttribute('href'), window.location.origin).toString(),
+        text: a.textContent.trim()
+    }));
+
+    return moduleItems;
 }
 
-async function fetchModulePages(urls) {
-  const pages = [];
 
-  for (const url of urls) {
-    try {
-        const res = await fetch(url, { credentials: "include" }); // important for Canvas auth
-        const text = await res.text();
-        pages.push({ url, html: text });
-    } catch (err) {
-        console.error(`Error fetching ${url}:`, err);
+async function fetchModulePagesWithLimit(urls, limit = 5) {
+    const results = [];
+    let index = 0;
+
+    async function worker() {
+        while (index < urls.length) {
+        const currentIndex = index++;
+        const url = urls[currentIndex];
+
+        try {
+            const res = await fetch(url, { credentials: "include" });
+            const text = await res.text();
+            results[currentIndex] = { url, html: text };
+        } catch (err) {
+            console.error(`Error fetching ${url}:`, err);
+            results[currentIndex] = null;
+        }
+        }
     }
-  }
 
-  return pages;
+    const workers = Array.from({ length: limit }, () => worker());
+    await Promise.all(workers);
+
+    return results.filter(Boolean);
 }
+
 
 function extractPdfLinkFromHTML(html, baseUrl) {
     const parser = new DOMParser();
@@ -49,12 +64,12 @@ function extractPdfLinkFromHTML(html, baseUrl) {
     if (anchor) {
         const href = anchor.getAttribute("href");
         const pdfUrl = new URL(href, baseUrl).toString();
-        const text = anchor.textContent.trim();
-        return { url: pdfUrl, text };
+        return pdfUrl;
     }
 
     return null;
 }
+
 
 window.addEventListener("load", () => {
   chrome.storage.local.clear(() => {
@@ -68,18 +83,25 @@ if (isCanvasCoursePage()) {
 }   
 
 (async () => {
-    const moduleUrls = await getModuleItemLinks();
-    console.log(moduleUrls);
+    const moduleItems = await getModuleItemLinks(); // now contains { url, text }
+    console.log(moduleItems);
 
-    const modulePages = await fetchModulePages(moduleUrls);
+    const modulePages = await fetchModulePagesWithLimit(moduleItems.map(item => item.url), 30);
 
     const pdfLinks = modulePages
-    .map(({ url, html }) => extractPdfLinkFromHTML(html, url))
-    .filter((link) => link !== null);
+        .map(({ html, url }, index) => {
+            const pdfUrl = extractPdfLinkFromHTML(html, url);
+            if (!pdfUrl) return null;
+
+            const text = moduleItems[index].text;
+            return { text, url: pdfUrl };
+        })
+        .filter(link => link !== null);
 
     console.log("Found PDF Links:", pdfLinks);
     chrome.storage.local.set({ pdfLinks });
 })();
+
 
 
 
