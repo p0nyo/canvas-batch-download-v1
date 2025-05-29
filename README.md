@@ -1,3 +1,3 @@
 # canvas-batch-downloader
 
-google chrome extension that allows for batch downloading + file selection
+testing proof of concept for batch downloading canvas attachments with google chrome ext.
